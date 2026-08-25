@@ -4,7 +4,7 @@ import { createSamplePortfolio } from './lib/sample'
 import { appConfig } from './config'
 import { saveLocal, loadLocal, exportJsonFile, validatePortfolio, getSnapshots, addSnapshot, deleteSnapshot } from './lib/storage'
 import { renderHtml, downloadTextFile } from './lib/export'
-import { FREE_PROJECT_LIMIT, TEMPLATES } from './lib/features'
+import { FREE_PROJECT_LIMIT, TEMPLATES, isEntitled } from './lib/entitlements'
 import { Preview } from './components/Preview'
 import { UpgradeModal } from './components/Modals'
 import { LockBadge, Button } from './components/ui'
@@ -80,10 +80,8 @@ export default function App() {
 
   const exportCurrent = () => downloadTextFile(renderHtml(data), 'index.html', 'text/html')
   const exportAll = () => {
-    if (!premium) return openUpgrade()
-    const current = data.template
+    if (!isEntitled('export-all-templates', { premium })) return openUpgrade()
     TEMPLATES.forEach((t) => downloadTextFile(renderHtml({ ...data, template: t.id }), `index-${t.id}.html`, 'text/html'))
-    setData((d) => ({ ...d, template: current }))
   }
 
   const onImport = (file: File) => {
@@ -102,7 +100,7 @@ export default function App() {
   }
 
   const saveSnapshot = () => {
-    if (!premium) return openUpgrade()
+    if (!isEntitled('version-history', { premium })) return openUpgrade()
     const snap: PortfolioSnapshot = {
       id: Math.random().toString(36).slice(2, 10),
       label: data.profile.fullName || 'Untitled',
@@ -114,7 +112,7 @@ export default function App() {
   }
 
   const restoreSnapshot = (id: string) => {
-    if (!premium) return openUpgrade()
+    if (!isEntitled('version-history', { premium })) return openUpgrade()
     const snap = snapshots.find((s) => s.id === id)
     if (snap) setData(structuredClone(snap.data))
   }
@@ -204,17 +202,15 @@ export default function App() {
               {!premium && <LockBadge onUnlock={openUpgrade} />}
             </Button>
           </div>
-          <label className="flex items-center gap-1 rounded-md bg-gray-100 px-2 py-1 text-xs text-gray-600">
-            <input
-              type="checkbox"
-              checked={premium}
-              onChange={(e) => {
-                setPremium(e.target.checked)
-                if (!e.target.checked) setTab(tab)
-              }}
-            />
-            Premium demo
-          </label>
+          {appConfig.premiumTestEnabled && (
+            <label
+              className="flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700"
+              title="Development-only premium test mode. Not available in production builds."
+            >
+              <input type="checkbox" checked={premium} onChange={(e) => setPremium(e.target.checked)} />
+              DEV test mode
+            </label>
+          )}
           <Button variant="primary" onClick={openUpgrade}>
             Upgrade — {appConfig.premiumPrice}
           </Button>
@@ -251,14 +247,14 @@ export default function App() {
         <section className="overflow-y-auto rounded-lg border border-gray-200 bg-white p-4" aria-label="Editor">
           {editorContent}
         </section>
-        <section className="rounded-lg border border-gray-200 bg-white" aria-label="Preview">
+        <section className="min-h-[70vh] rounded-lg border border-gray-200 bg-white" aria-label="Preview">
           <Preview data={data} viewport={viewport} onViewport={setViewport} />
         </section>
       </main>
       <UpgradeModal
         open={upgradeOpen}
         onClose={() => setUpgradeOpen(false)}
-        onSimulate={() => {
+        onEnableTestMode={() => {
           setPremium(true)
           setUpgradeOpen(false)
         }}

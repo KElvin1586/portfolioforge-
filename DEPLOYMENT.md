@@ -27,11 +27,12 @@ PortfolioForge uses a single `index.html` with no client-side routing. No rewrit
 Configure the one-time premium price and the upgrade URL at build time:
 
 ```
-VITE_PREMIUM_PRICE=$14.99
-VITE_UPGRADE_URL=https://your-checkout.example.com/portfolioforge
+VITE_PREMIUM_PRICE=$9.99
+VITE_PREMIUM_CURRENCY=USD
+VITE_UPGRADE_URL=https://payments.yourdomain.com/portfolioforge
 ```
 
-Commit a `.env` or use your host's environment-variable settings so the values are baked into the bundle.
+Commit a `.env` or use your host's environment-variable settings so the values are baked into the bundle. Without `VITE_UPGRADE_URL`, users land on the bundled test checkout page (`/checkout.html`); set a real provider URL before selling premium.
 
 ## Exported portfolio sites
 

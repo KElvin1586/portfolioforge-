@@ -55,7 +55,11 @@ The exported HTML is fully self-contained (inline CSS), semantic, and includes O
 
 ## Upgrading
 
-Premium is a one-time purchase. The app shows the configured price (defaults to **$9.99**) and sends you to the configured upgrade URL; there is no in-app checkout. To evaluate premium locally, tick **Premium demo** in the top bar (or click *Simulate premium* in the upgrade modal).
+Premium is a one-time purchase. The upgrade modal shows the configured price (defaults to **$9.99 USD**) and opens the configured checkout URL in a new tab. In development this points at the bundled internal test checkout page (`/checkout.html`); production replaces it via `VITE_UPGRADE_URL`. No payment is processed inside the app.
+
+## Development premium test mode
+
+While running `vite dev`, a **DEV test mode** toggle appears in the top bar. Switch it on to unlock premium locally; switch off to return to Free. Production builds hide this toggle entirely. Nothing is stored about a "purchase" — it never claims a payment happened.
 
 ## Privacy
 

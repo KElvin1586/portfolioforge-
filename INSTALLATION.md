@@ -24,14 +24,15 @@ npm install
 
 ## Optional configuration
 
-Premium pricing and the upgrade URL are configurable with Vite environment variables. Create a `.env` in the project root:
+Premium pricing, currency, and the checkout URL are configurable with Vite environment variables. Create a `.env` in the project root:
 
 ```
-VITE_PREMIUM_PRICE=$14.99
-VITE_UPGRADE_URL=https://your-checkout.example.com/portfolioforge
+VITE_PREMIUM_PRICE=$9.99
+VITE_PREMIUM_CURRENCY=USD
+VITE_UPGRADE_URL=https://payments.yourdomain.com/portfolioforge
 ```
 
-If unset the app defaults to `$9.99` and a placeholder upgrade URL.
+Defaults: price `$9.99`, currency `USD`, and the internal test checkout page at `/checkout.html` (bundled in `public/checkout.html`). Point `VITE_UPGRADE_URL` at your real payment provider for production.
 
 ## Troubleshooting
 

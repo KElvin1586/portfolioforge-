@@ -1,6 +1,6 @@
 import { PortfolioData, Profile, SocialLinks, Project, ExperienceItem, EducationItem, Certification, CustomSection } from '../types'
 import { id } from '../lib/sample'
-import { FREE_PALETTES, FREE_FONTS, TEMPLATES, Access, isTemplateAllowed } from '../lib/features'
+import { TEMPLATES, Access, isTemplateAllowed, isPaletteAllowed, isFontAllowed } from '../lib/entitlements'
 import { PALETTES, FONTS } from '../lib/export'
 import { LockBadge, Field, inputCls, textareaCls, AddButton } from './ui'
 
@@ -45,9 +45,9 @@ function ListEditor<T extends { id: string }>({
       {items.map((item, idx) => (
         <div key={item.id} className="relative rounded-lg border border-gray-200 bg-white p-3">
           <div className="absolute right-2 top-2 flex gap-1 text-xs">
-            <button onClick={() => move(idx, -1)} disabled={idx === 0} className="px-1 disabled:opacity-30">↑</button>
-            <button onClick={() => move(idx, 1)} disabled={idx === items.length - 1} className="px-1 disabled:opacity-30">↓</button>
-            <button onClick={() => remove(item.id)} className="px-1 text-red-500">✕</button>
+            <button onClick={() => move(idx, -1)} disabled={idx === 0} className="px-1 disabled:opacity-30" aria-label="Move item up">↑</button>
+            <button onClick={() => move(idx, 1)} disabled={idx === items.length - 1} className="px-1 disabled:opacity-30" aria-label="Move item down">↓</button>
+            <button onClick={() => remove(item.id)} className="px-1 text-red-500" aria-label="Remove item">✕</button>
           </div>
           <div className="grid gap-2">
             {fields.map((f) => (
@@ -390,12 +390,13 @@ export function ThemePicker({
 }) {
   const palettes = Object.keys(PALETTES) as (keyof typeof PALETTES)[]
   const fonts = Object.keys(FONTS) as (keyof typeof FONTS)[]
+  const access: Access = { premium }
   const choosePalette = (p: keyof typeof PALETTES) => {
-    if (!premium && !FREE_PALETTES.includes(p)) return onLocked()
+    if (!isPaletteAllowed(p, access)) return onLocked()
     patch((d) => void (d.theme.palette = p))
   }
   const chooseFont = (f: keyof typeof FONTS) => {
-    if (!premium && !FREE_FONTS.includes(f)) return onLocked()
+    if (!isFontAllowed(f, access)) return onLocked()
     patch((d) => void (d.theme.font = f))
   }
   return (
@@ -405,7 +406,7 @@ export function ThemePicker({
         <div className="grid grid-cols-3 gap-2">
           {palettes.map((p) => {
             const info = PALETTES[p]
-            const allowedPalette = premium || FREE_PALETTES.includes(p as 'slate')
+            const allowedPalette = isPaletteAllowed(p, { premium })
             return (
               <button
                 key={p}

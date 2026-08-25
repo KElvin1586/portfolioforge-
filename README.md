@@ -13,7 +13,7 @@ npm run dev
 
 Open http://localhost:5173 and start editing. Everything auto-saves locally.
 
-Docs: [User guide](./USER-GUIDE.md) · [Installation](./INSTALLATION.md) · [Deployment](./DEPLOYMENT.md)
+Docs: [User guide](./USER-GUIDE.md) · [Installation](./INSTALLATION.md) · [Deployment](./DEPLOYMENT.md) · [Pricing](./PRICING.md)
 
 ## Features
 
@@ -40,9 +40,9 @@ Docs: [User guide](./USER-GUIDE.md) · [Installation](./INSTALLATION.md) · [Dep
 | SEO | auto-generated | fully editable |
 | History | — | snapshots |
 
-Premium is a one-time purchase (default **$9.99**, configurable via `VITE_PREMIUM_PRICE`) accessed through a configured upgrade URL (`VITE_UPGRADE_URL`). There is no in-app payment flow — the upgrade link points to whatever checkout you host.
+Premium is a one-time purchase (default **$9.99 USD**, configurable via `VITE_PREMIUM_PRICE` / `VITE_PREMIUM_CURRENCY`) accessed through a configured upgrade URL (`VITE_UPGRADE_URL`). Until configured, the upgrade button opens the bundled internal test checkout page at `/checkout.html`; no payment is processed anywhere inside the app.
 
-A "Premium demo" toggle in the header unlocks premium locally for evaluation without touching any payment flow.
+A "DEV test mode" toggle appears in the header **only when running `vite dev`** and unlocks premium locally for development. Production builds hide it.
 
 ## Development
 
@@ -60,7 +60,7 @@ src/
   config.ts           # premium price / upgrade URL
   types.ts            # portfolio data model
   lib/
-    features.ts       # freemium gating rules
+    entitlements.ts   # centralized Free/Premium registry
     sample.ts         # sample/empty portfolio factory
     storage.ts        # local save/load, import validation, snapshots
     export.ts         # static HTML generation for each template
@@ -70,6 +70,8 @@ src/
     Preview.tsx       # live preview frame
     Modals.tsx        # upgrade modal
   App.tsx             # shell, tabs, toolbar
+public/
+  checkout.html       # internal test checkout (replace with VITE_UPGRADE_URL)
 ```
 
 ## How export works
@@ -78,4 +80,4 @@ src/
 
 ## License
 
-[MIT](./LICENSE)
+[MIT](./LICENSE.md) · [Commercial terms for Premium](./COMMERCIAL-LICENSE.md)

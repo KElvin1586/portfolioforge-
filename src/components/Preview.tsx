@@ -34,8 +34,8 @@ export function Preview({
           title="Portfolio preview"
           srcDoc={html}
           sandbox=""
-          className={`mx-auto h-full bg-white ${viewport === 'mobile' ? 'max-w-[400px]' : 'w-full'}`}
-          style={{ width: viewport === 'mobile' ? '400px' : '100%', border: 0 }}
+          className="mx-auto h-full bg-white"
+          style={{ width: viewport === 'mobile' ? 'min(400px, 100%)' : '100%', border: 0 }}
         />
       </div>
     </div>
