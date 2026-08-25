@@ -73,8 +73,13 @@ export default function App() {
 
   useEffect(() => {
     saveLocal(data)
-    setSavedNote(new Date().toLocaleTimeString())
   }, [data])
+
+  const [prevData, setPrevData] = useState(data)
+  if (prevData !== data) {
+    setPrevData(data)
+    setSavedNote(new Date().toLocaleTimeString())
+  }
 
   const openUpgrade = () => setUpgradeOpen(true)
 
@@ -185,6 +190,7 @@ export default function App() {
       default:
         return null
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- snapshot handlers are stable closures over the states already listed
   }, [tab, data, premium, snapshots])
 
   return (

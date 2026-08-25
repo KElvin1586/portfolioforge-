@@ -43,7 +43,7 @@ function render(
   css: string,
   layoutClass: string,
 ): string {
-  const { profile, social, theme, seo } = data
+  const { profile, theme, seo } = data
   const palette = PALETTES[theme.palette]
   const font = FONTS[theme.font]
   const p = theme.darkMode
