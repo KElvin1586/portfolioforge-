@@ -29,10 +29,10 @@ Premium pricing, currency, and the checkout URL are configurable with Vite envir
 ```
 VITE_PREMIUM_PRICE=$9.99
 VITE_PREMIUM_CURRENCY=USD
-VITE_UPGRADE_URL=https://YOUR_REAL_CHECKOUT_URL
+VITE_UPGRADE_URL=https://kelvindigitaltools.lemonsqueezy.com/checkout/buy/5a9a0680-dbb4-4c1b-b38c-02c8bbd20fe1
 ```
 
-Defaults: price `$9.99`, currency `USD`, and the internal test checkout page at `/checkout.html` (bundled in `public/checkout.html`, no payments processed). Point `VITE_UPGRADE_URL` at your real payment provider's public checkout link for production — full steps in DEPLOYMENT.md. Never put private API keys or payment secrets in `VITE_*` variables; they ship publicly in the frontend bundle.
+Defaults: price `$9.99`, currency `USD`, and the production Lemon Squeezy checkout URL above (already the default, so no override is required). Premium is activated after purchase with the Lemon Squeezy license key emailed to the buyer — the app verifies keys against Lemon Squeezy's public license API. Full details in DEPLOYMENT.md and PRICING.md. Never put private API keys or payment secrets in `VITE_*` variables; they ship publicly in the frontend bundle.
 
 ## Troubleshooting
 

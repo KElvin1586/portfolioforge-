@@ -5,6 +5,8 @@ import { appConfig } from './config'
 import { saveLocal, loadLocal, exportJsonFile, validatePortfolio, getSnapshots, addSnapshot, deleteSnapshot } from './lib/storage'
 import { renderHtml, downloadTextFile } from './lib/export'
 import { FREE_PROJECT_LIMIT, TEMPLATES, isEntitled } from './lib/entitlements'
+import { LicenseInfo, validateLicenseKey } from './lib/license'
+import { clearLicense, loadLicense, storeLicense, touchLicense, withinOfflineGrace } from './lib/premium'
 import { Preview } from './components/Preview'
 import { UpgradeModal } from './components/Modals'
 import { LockBadge, Button } from './components/ui'
@@ -56,8 +58,57 @@ export default function App() {
   const stored = loadLocal()
   const [data, setData] = useState<PortfolioData>(() => stored?.data ?? createSamplePortfolio())
   const [tab, setTab] = useState<TabId>('profile')
-  const [premium, setPremium] = useState(false)
+  // Premium is ONLY ever granted from a successful Lemon Squeezy validation.
+  // There is no stored boolean flag to flip — see src/lib/premium.ts.
+  const [premiumInfo, setPremiumInfo] = useState<LicenseInfo | null>(() => {
+    const saved = loadLicense()
+    return saved && withinOfflineGrace(saved.lastVerifiedAt) ? saved.info : null
+  })
+  const [licenseNotice, setLicenseNotice] = useState('')
   const [upgradeOpen, setUpgradeOpen] = useState(false)
+  const premium = premiumInfo !== null
+
+  // On load, re-verify the stored license against Lemon Squeezy in the
+  // background. Offline users keep Premium within the grace window;
+  // revoked/refunded keys are downgraded as soon as we are online.
+  useEffect(() => {
+    const saved = loadLicense()
+    if (!saved) return
+    let cancelled = false
+    validateLicenseKey(saved.key).then((result) => {
+      if (cancelled) return
+      if (result.ok) {
+        touchLicense()
+        setPremiumInfo(result.info)
+      } else if (result.reason === 'network' || result.reason === 'server') {
+        if (!withinOfflineGrace(saved.lastVerifiedAt)) {
+          clearLicense()
+          setPremiumInfo(null)
+          setLicenseNotice('Premium could not be re-verified offline. Reconnect and re-enter your license key to restore it.')
+        }
+      } else {
+        clearLicense()
+        setPremiumInfo(null)
+        setLicenseNotice(result.message)
+      }
+    })
+    return () => {
+      cancelled = true
+    }
+  }, [])
+
+  const onLicenseActivated = (key: string, info: LicenseInfo) => {
+    storeLicense(key, info)
+    setPremiumInfo(info)
+    setLicenseNotice('')
+    setUpgradeOpen(false)
+  }
+
+  const onLicenseDeactivated = () => {
+    clearLicense()
+    setPremiumInfo(null)
+    setUpgradeOpen(false)
+  }
   const [viewport, setViewport] = useState<'desktop' | 'mobile'>('desktop')
   const [savedNote, setSavedNote] = useState('')
   const [snapshots, setSnapshots] = useState<PortfolioSnapshot[]>(() => getSnapshots())
@@ -213,12 +264,16 @@ export default function App() {
               className="flex items-center gap-1 rounded-md bg-emerald-50 px-2 py-1 text-xs font-medium text-emerald-700"
               title="Development-only premium test mode. Not available in production builds."
             >
-              <input type="checkbox" checked={premium} onChange={(e) => setPremium(e.target.checked)} />
+              <input
+                type="checkbox"
+                checked={premium}
+                onChange={(e) => setPremiumInfo(e.target.checked ? { productName: 'Dev test mode' } : null)}
+              />
               DEV test mode
             </label>
           )}
           <Button variant="primary" onClick={openUpgrade}>
-            Upgrade — {appConfig.premiumPrice}
+            {premium ? 'Premium ✓' : `Upgrade — ${appConfig.premiumPrice}`}
           </Button>
           <input
             ref={importRef}
@@ -233,6 +288,11 @@ export default function App() {
           />
         </div>
       </header>
+      {licenseNotice && (
+        <div role="alert" className="border-b border-amber-200 bg-amber-50 px-4 py-2 text-center text-sm text-amber-800">
+          {licenseNotice}
+        </div>
+      )}
       <main className="mx-auto grid w-full max-w-[1400px] flex-1 grid-cols-1 gap-4 p-4 lg:grid-cols-[280px_minmax(0,420px)_1fr]">
         <nav className="rounded-lg border border-gray-200 bg-white p-2">
           <ul className="space-y-0.5">
@@ -260,10 +320,9 @@ export default function App() {
       <UpgradeModal
         open={upgradeOpen}
         onClose={() => setUpgradeOpen(false)}
-        onEnableTestMode={() => {
-          setPremium(true)
-          setUpgradeOpen(false)
-        }}
+        premiumInfo={premiumInfo}
+        onActivated={onLicenseActivated}
+        onDeactivate={onLicenseDeactivated}
       />
     </div>
   )

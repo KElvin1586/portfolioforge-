@@ -55,7 +55,16 @@ The exported HTML is fully self-contained (inline CSS), semantic, and includes O
 
 ## Upgrading
 
-Premium is a one-time purchase. The upgrade modal shows the configured price (defaults to **$9.99 USD**) and opens the configured checkout URL in a new tab. In development this points at the bundled internal test checkout page (`/checkout.html`); production replaces it via `VITE_UPGRADE_URL`. No payment is processed inside the app.
+Premium is a one-time purchase. The upgrade modal shows the configured price (defaults to **$9.99 USD**) and its **Buy Premium** button opens the Lemon Squeezy checkout in a new tab. No payment is processed inside the app.
+
+**Activating Premium after purchase:**
+
+1. Complete the checkout — Lemon Squeezy emails you a license key (it also appears on your order page under "Licenses").
+2. Copy the key (format: `XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX`).
+3. Back in PortfolioForge, open the upgrade modal, paste the key into the license field, and click **Activate Premium**.
+4. The key is verified against Lemon Squeezy's license API. A valid key unlocks all Premium features instantly; invalid or refunded keys show an error and keep you on Free.
+
+Your license key is saved locally and re-verified whenever the app loads, so Premium stays unlocked on this device. If the key is later refunded or disabled, Premium is revoked on the next online load. Click the **Premium ✓** button to view your license details or deactivate Premium on this device.
 
 ## Development premium test mode
 

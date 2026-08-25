@@ -40,7 +40,7 @@ Docs: [User guide](./USER-GUIDE.md) · [Installation](./INSTALLATION.md) · [Dep
 | SEO | auto-generated | fully editable |
 | History | — | snapshots |
 
-Premium is a one-time purchase (default **$9.99 USD**, configurable via `VITE_PREMIUM_PRICE` / `VITE_PREMIUM_CURRENCY`) accessed through a configured upgrade URL (`VITE_UPGRADE_URL`). Until configured, the upgrade button opens the bundled internal test checkout page at `/checkout.html`; no payment is processed anywhere inside the app.
+Premium is a one-time purchase (default **$9.99 USD**, configurable via `VITE_PREMIUM_PRICE` / `VITE_PREMIUM_CURRENCY`) sold through a Lemon Squeezy hosted checkout (`VITE_UPGRADE_URL`). After purchase, customers activate Premium with the license key Lemon Squeezy emails them; the app verifies keys directly against Lemon Squeezy's public license API. No payment is processed inside the app and no payment credentials ship in the bundle — see [PRICING.md](PRICING.md) for the full flow and security model.
 
 A "DEV test mode" toggle appears in the header **only when running `vite dev`** and unlocks premium locally for development. Production builds hide it.
 
@@ -61,6 +61,8 @@ src/
   types.ts            # portfolio data model
   lib/
     entitlements.ts   # centralized Free/Premium registry
+    license.ts        # Lemon Squeezy license-key verification + storage
+    premium.ts        # premium state: license revalidation, grace window
     sample.ts         # sample/empty portfolio factory
     storage.ts        # local save/load, import validation, snapshots
     export.ts         # static HTML generation for each template
@@ -68,10 +70,8 @@ src/
     ui.tsx            # shared primitives
     Editors.tsx       # section editors, template/theme pickers
     Preview.tsx       # live preview frame
-    Modals.tsx        # upgrade modal
+    Modals.tsx        # upgrade / manage-premium modal
   App.tsx             # shell, tabs, toolbar
-public/
-  checkout.html       # internal test checkout (replace with VITE_UPGRADE_URL)
 ```
 
 ## How export works

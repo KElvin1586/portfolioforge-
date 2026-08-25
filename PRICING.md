@@ -23,24 +23,40 @@ VITE_PREMIUM_PRICE=$9.99
 VITE_PREMIUM_CURRENCY=USD
 ```
 
-The upgrade button points at `VITE_UPGRADE_URL`. Until you set it, the app uses the bundled internal test checkout page at `/checkout.html`, which processes **no payments**.
+The upgrade button points at `VITE_UPGRADE_URL`, which defaults to the production Lemon Squeezy checkout:
 
-## Connecting a real checkout
+```
+https://kelvindigitaltools.lemonsqueezy.com/checkout/buy/5a9a0680-dbb4-4c1b-b38c-02c8bbd20fe1
+```
 
-Premium activation is a simple link redirect — the app never handles card data or payment APIs. To sell Premium for real:
+## How Premium activation works (Lemon Squeezy license keys)
 
-1. **Create the product** in your chosen payment provider (any provider that offers hosted checkout or payment links works).
-2. **Create the checkout/payment link** for that product in the provider's dashboard.
-3. **Set the environment variable** before building (`.env` is git-ignored; see `.env.example`):
-   ```
-   VITE_UPGRADE_URL=https://YOUR_REAL_CHECKOUT_URL
-   ```
-   Use your provider's real public checkout URL here — not a placeholder.
-4. **Rebuild** the app (`npm run build`) — `VITE_*` variables are baked into the bundle at build time, not runtime.
-5. **Test the checkout** end-to-end with the provider's test mode before going live.
-6. **Never put private API keys or payment secrets in `VITE_*` variables** — everything prefixed `VITE_` ships publicly in the frontend JavaScript.
+PortfolioForge uses Lemon Squeezy for checkout **and** license verification:
 
-Until step 3–4 are done, no payment is possible; the upgrade flow lands on the clearly-labeled internal test page.
+1. The customer clicks **Buy Premium** → the Lemon Squeezy checkout opens in a new tab.
+2. After purchase, Lemon Squeezy emails the customer a **license key** (also shown on the order page under "Licenses").
+3. The customer pastes the key into the upgrade modal's **Activate Premium** field.
+4. The app validates the key directly against Lemon Squeezy's public license API
+   (`POST https://api.lemonsqueezy.com/v1/licenses/validate`), which requires **no API key** and is CORS-enabled, so it can be called securely from the browser.
+5. Only a `valid: true` response from Lemon Squeezy unlocks Premium. Invalid, disabled/refunded, or expired keys show a specific error and keep the app on Free.
+
+### Security properties
+
+- **No secrets in the bundle.** The validate endpoint is unauthenticated by design; no Lemon Squeezy API key, webhook secret, or payment credential is ever shipped. `VITE_*` variables are public by nature — only the public checkout URL goes there.
+- **No premium flag in storage.** localStorage holds only the customer's license key (base64-obfuscated) plus a last-verified timestamp. Premium is derived in memory from a successful validation, so editing localStorage/URL/console values cannot unlock anything: an invented or tampered key fails revalidation on next load and is revoked.
+- **Revalidation on every load.** The stored key is re-verified against Lemon Squeezy in the background on each app load. Refunded/disabled keys are downgraded as soon as the app is online. Offline users keep Premium for a 7-day grace window (`OFFLINE_GRACE_MS` in `src/lib/premium.ts`).
+- **`validate` not `activate`.** Validation does not consume activation slots, so the same key works across reloads and devices (up to the key's activation limit policy on your Lemon Squeezy product).
+
+### Lemon Squeezy product requirements
+
+For activation to work, the product behind the checkout URL must:
+
+1. Have **license key generation enabled** (product settings → "License keys"), so buyers receive a key after purchase.
+2. Be a **one-time** product (matches the one-time pricing model).
+
+Optional: point the product's redirect/receipt at the app, but customers can always copy the key from the email or order page.
+
+**Never put private API keys or payment secrets in `VITE_*` variables** — everything prefixed `VITE_` ships publicly in the frontend JavaScript. This app needs none: checkout is hosted by Lemon Squeezy and license validation uses their public, unauthenticated endpoint.
 
 ## Free tier users
 
@@ -48,4 +64,4 @@ The free plan is genuinely usable: all editors, two templates, three projects, H
 
 ## Development premium test mode
 
-Development test mode ≠ real customer payment. The **DEV test mode** toggle exists only so developers can exercise the premium UI while building; it is compiled out of production builds entirely (`import.meta.env.DEV` gate) and never implies a purchase. Real customers unlock premium only through the configured checkout URL above. See USER-GUIDE for details.
+Development test mode ≠ real customer payment. The **DEV test mode** toggle exists only so developers can exercise the premium UI while building; it is compiled out of production builds entirely (`import.meta.env.DEV` gate), does not touch localStorage license records, and never implies a purchase. Real customers unlock Premium only by validating a Lemon Squeezy license key issued after purchase. See USER-GUIDE for details.

@@ -2,6 +2,21 @@
 
 All notable changes to PortfolioForge.
 
+## [1.2.0] — 2026-08-25
+
+### Added
+- Real payment integration with Lemon Squeezy: the Premium upgrade button opens the production hosted checkout, and Premium is unlocked by validating the license key emailed to the buyer (`POST /v1/licenses/validate` — public, CORS-enabled endpoint; no API secret ships in the bundle).
+- License management: the upgrade modal accepts a license key, shows specific errors for invalid/disabled/expired keys, and the **Premium ✓** button opens a manage view with license details and per-device deactivation.
+- Stored license keys are re-validated against Lemon Squeezy on every app load; refunded/disabled keys are revoked automatically (7-day offline grace window).
+- Unit tests for license validation and premium state derivation (`src/lib/license.test.ts`, `src/lib/premium.test.ts`).
+
+### Changed
+- `VITE_UPGRADE_URL` now defaults to the production Lemon Squeezy checkout URL.
+- Premium state is derived solely from a verified license key — there is no stored "premium flag", so editing localStorage cannot unlock Premium.
+
+### Removed
+- Internal fake checkout page (`public/checkout.html`) and all placeholder/example checkout URLs.
+
 ## [1.0.0] — 2024-08-25
 
 ### Added
